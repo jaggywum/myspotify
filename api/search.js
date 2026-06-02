@@ -37,7 +37,10 @@ export default async function handler(req, res) {
 
     const results = await spotifyResponse.json();
 
-    res.status(200).json(results);
+res.status(200).json({
+  tokenData,
+  results
+});
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
