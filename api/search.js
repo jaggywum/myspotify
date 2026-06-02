@@ -3,9 +3,12 @@ export default async function handler(req, res) {
     const query = req.query.q;
 
     if (!query) {
-      return res.status(400).json({ error: "Missing query" });
+      return res.status(400).json({
+        error: "Missing search query",
+      });
     }
 
+    // Get Spotify access token
     const auth = Buffer.from(
       `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
     ).toString("base64");
@@ -24,10 +27,18 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenResponse.json();
 
-    const spotifyResponse = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+    if (!tokenData.access_token) {
+      return res.status(500).json({
+        error: "Failed to get Spotify token",
+        spotifyResponse: tokenData,
+      });
+    }
+
+    // Search Spotify
+    const searchResponse = await fetch(
+      `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(
         query
-      )}&type=track&limit=10`,
+      )}`,
       {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
@@ -35,13 +46,12 @@ export default async function handler(req, res) {
       }
     );
 
-    const results = await spotifyResponse.json();
+    const searchData = await searchResponse.json();
 
-res.status(200).json({
-  tokenData,
-  results
-});
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(200).json(searchData);
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
   }
 }
