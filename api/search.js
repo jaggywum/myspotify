@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const spotifyResponse = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
-      )}&type=track&limit=12`,
+      )}&type=track&limit=10`,
       {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
