@@ -2,12 +2,6 @@ export default async function handler(req, res) {
   try {
     const query = req.query.q;
 
-    if (!query) {
-      return res.status(400).json({
-        error: "Missing query",
-      });
-    }
-
     const auth = Buffer.from(
       `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
     ).toString("base64");
@@ -27,9 +21,7 @@ export default async function handler(req, res) {
     const tokenData = await tokenResponse.json();
 
     const spotifyResponse = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=track`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
       {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
@@ -37,12 +29,15 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await spotifyResponse.json();
+    const spotifyData = await spotifyResponse.json();
 
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
+    res.status(200).json({
+      tokenData,
+      spotifyData,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
     });
   }
 }
